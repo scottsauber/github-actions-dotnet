@@ -1,0 +1,35 @@
+name: CI
+
+env:
+  DOTNET_VERSION: '8.0'                 # set this to the .NET Core version to use
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: dotnet test
+        run: dotnet test --configuration Release --no-build
+
+      - name: dotnet publish
+        run: dotnet publish src/GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj --configuration Release -o artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dometrain-artifact
+          path: artifacts/

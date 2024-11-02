@@ -1,0 +1,17 @@
+name: Run every 1 hour
+
+env:
+  DOTNET_VERSION: '8.0'                 # set this to the .NET Core version to use
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  cron:
+    name: Run every 1 hour
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hello world
+        run: echo "Hello World"

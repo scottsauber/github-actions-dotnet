@@ -9,4 +9,7 @@ public record WeatherForecast
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
     public string? Summary { get; init; }
+
+    public string? Observatory { get; init; }
+
 }
