@@ -20,6 +20,7 @@ public class WeatherForecastController : ControllerBase
         "Scorching"
     ];
 
+
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get() => Enumerable.Range(1, 5).Select(index => new WeatherForecast
     {
