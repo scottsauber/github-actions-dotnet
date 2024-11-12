@@ -1,0 +1,15 @@
+name: Secrets workflow
+
+on: workflow_dispatch
+
+env:
+  APP_NAME: "Github actions demo"
+
+jobs:
+  secrets:
+    name: Secrets Demo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dotnet formatting
+        run: echo "$APP_NAME"
