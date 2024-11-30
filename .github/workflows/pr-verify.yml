@@ -1,0 +1,22 @@
+name: PR Verify
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: PR Verify Job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up .Net
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0
+
+      - name: Build with .Net
+        run: dotnet build --configuration Release
