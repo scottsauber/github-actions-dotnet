@@ -4,10 +4,17 @@ env:
   DOTNET_VERSION: '8.0'
   ARTIFACT_ROUTE: 'artifacts'
   ARTIFACT_NAME: 'domatrain-artifact'
+  AZURE_WEBAPP_NAME: app-dometrain-github-actions-axel
 
 on:
-  push:
+  pull_request:
     branches: [ "main" ]
+  
+  workflow_dispatch: 
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build:
@@ -31,7 +38,33 @@ jobs:
       - name: Publish artifacts
         run: dotnet publish src/GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj -o ${{env.ARTIFACT_ROUTE}}
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{env.ARTIFACT_NAME}}
           path: ${{env.ARTIFACT_ROUTE}}/
+
+  deploy_dev:
+    name: Deploy Dev
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{env.ARTIFACT_NAME}}
+          path: ${{env.ARTIFACT_ROUTE}}/
+
+      - name: 'Deploy Dev'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{env.ARTIFACT_ROUTE}}/
