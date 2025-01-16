@@ -1,0 +1,40 @@
+name: Deploy to azure
+
+on:
+    workflow_call:
+        inputs:
+            env:
+                required: true
+                type: string
+        secrets:
+            AZURE_CLIENT_ID: 
+                required: true
+            AZURE_TENANT_ID: 
+                required: true
+            AZURE_SUBSCRIPTION_ID: 
+                required: true
+jobs:
+    deploy:
+        name: Deploy ${{ inputs.env }}
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.env }}
+
+        steps:
+            - name: download artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: dometrain-artifact
+                path: artifacts/
+
+            - name: Azure login
+              uses: azure/login@v2
+              with:
+                client-id: ${{ secrets.AZURE_CLIENT_ID }}
+                tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+                subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        
+            - name: 'Deploy to Azure App Service Name'
+              uses: azure/webapps-deploy@v2
+              with: 
+                app-name: app-dometrain-github-actions-fgavilan-${{ inputs.env }} 
+                package: artifacts/
