@@ -1,0 +1,65 @@
+name: CI 
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0
+
+      # Did not include a dotnet build step because imn the test, we are going to build anyway. We did not use the "--no-build" flag.
+      # Also, We have the test runiing imn another workflo, but this is so critical that we included this here again even if someone 
+      # bypasses the ruleset, we will have these test here anyway.
+
+      - name: dotnet test
+        run: dotnet test --configuration Release
+      
+      # I did not include a step for dotnet format because we already took care of that indirectly for this repo. We enforced rules to
+      # have the incomming branch to be updated with the branch "main" changes. Also, as status checks are required and we have other 
+      # workflow thayt takes care of that, there is no need to include formatting here.
+
+      # Of course, the recommendation is to have ALL verifications in the CI workflow
+
+      - name: dotnet publish
+        run: dotnet publish src/GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj --configuration Release -o artifacts-release-folder
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dometrain-artifact
+          path: artifacts-release-folder/
+
+  deploy-dev:
+    name: Deploy Dev
+    needs: build # We make sure this job waits for the "build" job
+    uses: ./.github/workflows/deploy-to-azure.yml 
+    with:
+      env: prod
+    secrets: inherit
+
+
+  deploy-prod:
+    name: Deploy Pro
+    needs: deploy-dev
+    uses: ./.github/workflows/deploy-to-azure.yml 
+    with:
+      env: prod
+    secrets: inherit
+
+      
+      

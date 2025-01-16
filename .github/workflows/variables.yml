@@ -1,0 +1,20 @@
+name: Print Variable Values
+
+on:
+  workflow_dispatch:
+
+env:
+    SOME_VALUE: Francisco
+
+jobs:
+  build:
+    name: Print
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print using runner's shell specific syntax
+        run: echo "the value of SOME_VALUE is $SOME_VALUE"
+
+      - name: Print using Context
+        run: echo "Again, the value of SOME_VALUE is ${{env.SOME_VALUE}}". 
+        
