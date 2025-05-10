@@ -1,0 +1,17 @@
+name: Run every minute
+               # set this to the .NET Core version to use
+on:
+ schedule:
+    - cron: "*/5 * * * *"
+    
+
+jobs:
+  cron:
+    name: Run every 5 minutes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Greetings
+        run: echo "Hello World"
+        
+      
