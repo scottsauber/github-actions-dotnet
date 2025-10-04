@@ -1,0 +1,70 @@
+name: PR Verify
+
+# These are the veriables which you could use in your workflows
+env:
+  AZURE_WEBAPP_NAME: app-dev-rajsonawala.azurewebsites.net    # set this to the name of your Azure Web App
+  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '8.0'                 # set this to the .NET Core version to use
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: PR Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: Running test 
+        run: dotnet test --configuration Release --no-build
+      
+      - name: publish project 
+        run: dotnet publish src/GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj --configuration Release -o artifacts
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: artifacts/
+        
+  deploy_dev:
+    name: Deploy Dev
+    runs-on: ubuntu-latest
+    needs: build   # wait for other job to finish g
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: my-artifact
+          path: artifacts/
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenate-id: ${{ secrets.AZURE_TENATE_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          
+
+       # Deploy to Azure Web apps
+      - name: 'Deploy to Azure App Service'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+          package: 'artifacts/'
+
+
+    
