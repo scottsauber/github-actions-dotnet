@@ -1,0 +1,78 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history with tags, necessary for git log/describe
+          fetch-depth: 0 
+
+      - name: Get previous tag 
+        id: previoustag
+        run: |
+          # Finds the latest tag that IS NOT the current tag being pushed.
+          # The "|| true" ensures the workflow doesn't fail if this is the very first tag.
+          prev_tag=$(git describe --tags --abbrev=0 --exclude='${{ github.ref_name }}' || true)
+          # Only output if a previous tag was found
+          if [ -n "$prev_tag" ]; then
+            echo "previous_tag=${prev_tag}" >> $GITHUB_OUTPUT
+          fi
+          echo "Previous Tag Found: ${prev_tag}"
+
+          if [ -n "$prev_tag" ]; then
+            echo "previous_tag=$prev_tag" >> $GITHUB_OUTPUT
+            echo "Previous tag: $prev_tag"
+          else
+            echo "No previous tag found"
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        shell: bash
+        run: |
+          prev="${{ steps.previoustag.outputs.previous_tag }}"
+          tag="${GITHUB_REF_NAME}"
+
+          # Determine the commit range for the changelog
+          if [ -n "$prev" ]; then
+            # Log from the previous tag (exclusive) up to the current tag (inclusive)
+            log_range="${prev}..${tag}"
+            changelog_title="## What is in this release ${tag}"
+          else
+            # If no previous tag, log all commits up to the current tag
+            log_range="${tag}"
+            changelog_title="## Initial Release ${tag}"
+          fi
+
+          # Generate changelog with subject and short hash
+          # Using || true to avoid failure if no commits are found in the range (unlikely with a new tag)
+          changelog=$(git log "${log_range}" --pretty=format:"- %s (%h)" || true)
+
+          # Use EOD (End Of Delimiter) for multi-line output
+          {
+            echo "changelog<<EOD"
+            echo "${changelog_title}"
+            echo ""
+            echo "$changelog"
+            echo "EOD"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

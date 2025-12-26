@@ -1,5 +1,6 @@
 namespace GitHubActionsDotNet.Api.Controllers;
 using GitHubActionsDotNet.Api.Models;
+
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]

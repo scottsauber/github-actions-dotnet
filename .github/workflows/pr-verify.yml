@@ -1,0 +1,44 @@
+name: PR Verify
+
+on:
+  pull_request:
+    # Trigger on PRs targeting develop and main
+    branches: [ "develop", "main" ]
+
+jobs:
+  build:
+    name: PR Verify
+    runs-on: ubuntu-latest
+    # Give the job explicit write permissions so it can push a commit
+    permissions:
+      contents: write 
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: Run Tests
+        run: dotnet test --configuration Release --no-build
+
+  
+      
+      - name: Run formatter
+        run: dotnet format
+
+      - name: Commit formatted changes and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: Apply automatic dotnet format changes"
+
+          commit_author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+

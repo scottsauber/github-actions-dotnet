@@ -1,0 +1,14 @@
+name: Cron job to run every 5 minutes
+# cron jobs like do security scans after a specified period of time
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  cron:
+    name: Run every 5 minutes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Say Hello World
+        run: echo "hello world"

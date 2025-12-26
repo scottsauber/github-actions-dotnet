@@ -1,5 +1,6 @@
 namespace GitHubActionsDotNet.Api.Tests;
 using FluentAssertions;
+
 using GitHubActionsDotNet.Api.Models;
 
 public class WeatherForecastTests
@@ -14,4 +15,5 @@ public class WeatherForecastTests
 
         weatherForecast.TemperatureF.Should().Be(32);
     }
+
 }
