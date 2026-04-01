@@ -1,0 +1,30 @@
+
+name: Build and deploy ASP.Net Core app 
+
+env:
+    # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '8.0'                 # set this to the .NET Core version to use
+
+on:
+    pull_request:
+       branches: ["main"]
+  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+
