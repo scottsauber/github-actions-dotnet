@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    name: CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+
+          dotnet-version: 8.0
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: dotnet restore
+        run: dotnet restore --locked-mode
+
+      - name:  dotnet test
+        run: dotnet test --configuration Release --no-restore
+
+      - name:  dotnet publish
+        run: dotnet publish src/GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj --configuration Release -o artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dometrain-artifact
+          path: artifacts/
+
+  deploy-dev:
+      name: Deploy Dev
+      needs: build
+      uses: ./.github/workflows/step-deploy.yml
+      with:
+        env: dev
+
+  deploy-prod:
+      name: Deploy Prod
+      needs: deploy-dev
+      uses: ./github/workflows/step-deploy.yml
+      with:
+        env: prod

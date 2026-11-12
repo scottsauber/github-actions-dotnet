@@ -29,3 +29,6 @@ public class WeatherForecastController : ControllerBase
     })
         .ToArray();
 }
+
+//to test komentarz
+//a to jeszcze jeden komentarz po poprawnym dodanieu workflows folderu
